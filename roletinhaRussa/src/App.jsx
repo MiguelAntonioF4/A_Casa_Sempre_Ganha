@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginScreen from './components/auth/LoginScreen';
+import RegisterScreen from './components/auth/RegisterScreen';
+
 import { rouletteNumbers, MIN_BET, INITIAL_BALANCE } from './utils/rouletteConfig';
 import { checkWin, calculatePayout, spinRoulette } from './utils/gameLogic';
 import { calculateWinRate } from './utils/calculations';
@@ -14,8 +18,11 @@ import StatsTab from './components/StatsTab';
 import TheoryTab from './components/TheoryTab';
 import LeaderboardTab from './components/LeaderboardTab';
 import Footer from './components/Footer';
+import { LogOut } from 'lucide-react';
 
-function App() {
+function GameContent() {
+  const { user, logout } = useAuth();
+
   // Storage Hook
   const { 
     leaderboard, 
@@ -81,7 +88,7 @@ function App() {
   // UI States
   const [activeTab, setActiveTab] = useState('game');
   const [showTutorial, setShowTutorial] = useState(true);
-  const [playerName, setPlayerName] = useState('');
+  const [playerName, setPlayerName] = useState(user?.name || '');
 
   // Carregar dados salvos ao iniciar
   useEffect(() => {
@@ -197,7 +204,30 @@ function App() {
         setShowTutorial={setShowTutorial} 
       />
 
-      <Header playerBalance={playerBalance} />
+      {/* Header com botão de logout */}
+      <div className="bg-black bg-opacity-50 border-b-4 border-yellow-500 p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-yellow-400">🎰 A Casa Sempre Ganha</h1>
+            <p className="text-gray-400 text-sm">Teoria da Ruína do Jogador - Projeto Educativo UDESC</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <div className="text-sm text-gray-400">Jogador: <span className="text-yellow-400 font-semibold">{user.name}</span></div>
+              <div className="text-3xl font-bold text-green-400">${playerBalance.toFixed(2)}</div>
+              <div className="text-xs text-gray-400">Capital do Jogador</div>
+              <div className="text-xs text-yellow-300 mt-1">Casa: ∞ (Ilimitado)</div>
+            </div>
+            <button
+              onClick={logout}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
 
       <NavigationTabs 
         activeTab={activeTab} 
@@ -277,6 +307,43 @@ function App() {
 
       <Footer />
     </div>
+  );
+}
+
+function AppContent() {
+  const { user, isAuthenticated, loading } = useAuth();
+  const [authScreen, setAuthScreen] = useState('login'); // 'login' ou 'register'
+
+  // Mostrar loading enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-yellow-400 text-xl font-bold">🎰 Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não estiver autenticado, mostrar telas de login/registro
+  if (!isAuthenticated) {
+    return authScreen === 'login' ? (
+      <LoginScreen onSwitchToRegister={() => setAuthScreen('register')} />
+    ) : (
+      <RegisterScreen onSwitchToLogin={() => setAuthScreen('login')} />
+    );
+  }
+
+  // Se estiver autenticado, mostrar o jogo
+  return <GameContent />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
