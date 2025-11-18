@@ -1,7 +1,7 @@
 // Configurações e constantes da roleta
 
 export const INITIAL_BALANCE = 1000;
-export const MIN_BET = 5;
+export const MIN_BET = 10; // ✅ MUDOU DE 5 PARA 10
 export const HOUSE_EDGE = 5.26;
 
 // Números da roleta americana (0, 00, 1-36)

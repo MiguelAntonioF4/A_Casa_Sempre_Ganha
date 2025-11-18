@@ -37,8 +37,8 @@ const AutoModePanel = ({
           <label className="block text-sm font-semibold mb-2">Valor por Rodada:</label>
           <input
             type="number"
-            min="5"
-            step="5"
+            min="10"
+            step="10"
             value={autoBetAmount}
             onChange={(e) => setAutoBetAmount(parseInt(e.target.value) || 5)}
             className="w-full bg-gray-700 border border-purple-600 rounded px-3 py-2"

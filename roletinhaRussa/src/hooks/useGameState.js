@@ -3,7 +3,7 @@ import { INITIAL_BALANCE } from '../utils/rouletteConfig';
 
 export const useGameState = (saveGameData) => {
   const [playerBalance, setPlayerBalance] = useState(INITIAL_BALANCE);
-  const [betAmount, setBetAmount] = useState(5);
+  const [betAmount, setBetAmount] = useState(10);
   const [betType, setBetType] = useState('red');
   const [betNumber, setBetNumber] = useState(1);
   const [spinning, setSpinning] = useState(false);

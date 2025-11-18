@@ -53,7 +53,7 @@ const BettingPanel = ({
             type="range"
             min={MIN_BET}
             max={Math.max(MIN_BET, playerBalance)}
-            step="5"
+            step="10"
             value={betAmount}
             onChange={(e) => setBetAmount(parseInt(e.target.value))}
             className="w-full"
