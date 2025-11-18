@@ -1,46 +1,51 @@
-// Arquivo: A_Casa_Sempre_Ganha/roletinhaRussa/src/components/RouletteWheel.jsx
+// Arquivo: src/components/RouletteWheel.jsx
 
-import React, { useMemo } from 'react';
-// Remova o import desnecessário: import { useGameState } from '../hooks/useGameState';
-// Remova o import desnecessário: import { numbers } from '../utils/rouletteConfig';
-import rouletteImage from '../assets/images/roleta.png'; // Certifique-se que o caminho da imagem está correto!
+import React from 'react';
+import rouletteImage from '../assets/images/roleta.png'; 
 
-// O componente deve receber as props 'rotation', 'result' e 'spinning' do seu pai (GameTab)
-const RouletteWheel = ({ rotation, result, spinning }) => { 
+const RouletteWheel = ({ rotation, result, message, spinning }) => { 
     
-    // O erro "Cannot destructure property 'isSpinning' of 'gameState' as it is undefined"
-    // ocorria porque você estava tentando destruturar: 
-    // const { gameState } = useGameState();
-    // const { isSpinning, finalRotation, lastResult } = gameState;
-
-    // Agora, usamos as props recebidas:
-    const isSpinning = spinning; // Renomeia 'spinning' para 'isSpinning' (opcional, mas claro)
     const currentRotation = rotation; 
+    const isSpinning = spinning; 
     const lastResult = result;
-
-    // ... (restante do código que usa currentRotation, isSpinning e lastResult) ...
-    // ...
 
     return (
         <div className="relative flex items-center justify-center w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] lg:w-[400px] lg:h-[400px] mx-auto my-6">
             
-            {/* Seta estática no topo */}
-            <div className="absolute top-0 transform -translate-x-1/2 -translate-y-1/2 z-20">
+            {/* 🎯 CORREÇÃO 1: Posição da seta ajustada para que a ponta fique para baixo */}
+            <div className="absolute top-0 transform -translate-x-1/2 z-20"> 
                 <div className="indicator static-indicator"></div>
             </div>
 
-            {/* Imagem da Roleta que Gira */}
+            {/* Contêiner da Imagem da Roleta que Gira */}
             <div
                 className="wheel-image-container w-full h-full rounded-full overflow-hidden"
                 style={{
-                    transform: `rotate(${currentRotation}deg)`, // Usa currentRotation
-                    transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0.8, 0.6, 1)' : 'none', // Usa isSpinning
+                    transform: `rotate(${currentRotation}deg)`,
+                    transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0.8, 0.6, 1)' : 'none',
                     backgroundColor: 'transparent'
                 }}
             >
-                {/* ... (restante da renderização) ... */}
+                <img 
+                    src={rouletteImage} 
+                    alt="Roulette Wheel" 
+                    className="w-full h-full object-cover" 
+                />
             </div>
-            {/* ... (restante do return) ... */}
+            
+            {/* Exibe o último resultado no centro da roleta (Visível apenas após parar) */}
+            {lastResult && !isSpinning && (
+                <div 
+                    className={`absolute inset-0 flex items-center justify-center text-4xl font-bold rounded-full pointer-events-none 
+                    ${lastResult.color === 'green' ? 'bg-green-600' : lastResult.color === 'black' ? 'bg-black' : 'bg-red-600'}
+                    bg-opacity-80 z-10
+                    `}
+                >
+                    {lastResult.num}
+                </div>
+            )}
+            
+            {/* ❌ REMOVIDO: O bloco {isSpinning && (...)} que criava o overlay cinza de giro */}
         </div>
     );
 };

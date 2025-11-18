@@ -11,7 +11,7 @@ const GameTab = ({
   rotation,
   result,
   message,
-  
+
   // Apostas
   betType,
   setBetType,
@@ -22,7 +22,7 @@ const GameTab = ({
   playerBalance,
   spinning,
   onSpin,
-  
+
   // Modo Automático
   autoMode,
   autoRounds,
@@ -33,7 +33,7 @@ const GameTab = ({
   autoBetAmount,
   setAutoBetAmount,
   onAutoStartStop,
-  
+
   // Stats
   wins,
   losses,
@@ -41,7 +41,7 @@ const GameTab = ({
   winRate,
   balanceHistory,
   gameHistory,
-  
+
   // Reset
   onReset
 }) => {
@@ -49,12 +49,13 @@ const GameTab = ({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Coluna Esquerda - Roleta e Apostas */}
       <div className="lg:col-span-2 space-y-6">
-        <RouletteWheel 
+        <RouletteWheel
           rotation={rotation}
           result={result}
           message={message}
+          spinning={spinning}
         />
-        
+
         {!autoMode && (
           <BettingPanel
             betType={betType}
@@ -68,7 +69,7 @@ const GameTab = ({
             onSpin={onSpin}
           />
         )}
-        
+
         <AutoModePanel
           autoMode={autoMode}
           autoRounds={autoRounds}
@@ -92,14 +93,14 @@ const GameTab = ({
           currentAutoRound={currentAutoRound}
           winRate={winRate}
         />
-        
-        <BalanceChart 
+
+        <BalanceChart
           balanceHistory={balanceHistory}
           showLast50={true}
         />
-        
+
         <GameHistory gameHistory={gameHistory} />
-        
+
         <button
           onClick={onReset}
           className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition border-2 border-gray-600"

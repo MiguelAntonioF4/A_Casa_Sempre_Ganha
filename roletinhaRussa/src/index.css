@@ -81,12 +81,11 @@ input[type="range"]::-moz-range-thumb {
 /* Estilo para a Seta Estática (Indicator) */
 .indicator.static-indicator {
   position: absolute;
-  /* top: 0 e os transform -translate-y-1/2 no JSX devem posicioná-lo */
   width: 0;
   height: 0;
   border-left: 15px solid transparent; 
   border-right: 15px solid transparent;
-  border-bottom: 30px solid #FFD700; /* Dourado */
+  border-top: 30px solid #FFD700; /* 🎯 CORREÇÃO 2: Mudado para border-top para apontar para baixo */
   z-index: 100;
 }
 
