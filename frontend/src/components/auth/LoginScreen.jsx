@@ -17,7 +17,7 @@ const LoginScreen = ({ onSwitchToRegister }) => {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError(''); // Limpar erro ao digitar
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -38,25 +38,14 @@ const LoginScreen = ({ onSwitchToRegister }) => {
       return;
     }
 
-    // Simular login (TEMPORÁRIO - depois vamos conectar com backend)
-    setTimeout(() => {
-      // Verificar se usuário existe no localStorage
-      const users = JSON.parse(localStorage.getItem('casino_users') || '[]');
-      const user = users.find(
-        u => u.email === formData.email && u.password === formData.password
-      );
-
-      if (user) {
-        login({
-          id: user.id,
-          name: user.name,
-          email: user.email
-        });
-      } else {
-        setError('Email ou senha incorretos');
-      }
-      setLoading(false);
-    }, 1000);
+    // Fazer login via API
+    const result = await login(formData);
+    
+    if (!result.success) {
+      setError(result.message);
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -109,16 +98,6 @@ const LoginScreen = ({ onSwitchToRegister }) => {
               disabled={loading}
             />
           </div>
-        </div>
-
-        {/* Esqueci a senha */}
-        <div className="text-right">
-          <button
-            type="button"
-            className="text-sm text-yellow-400 hover:text-yellow-300 transition"
-          >
-            Esqueceu a senha?
-          </button>
         </div>
 
         {/* Botão Login */}

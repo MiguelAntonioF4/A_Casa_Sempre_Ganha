@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthLayout from './AuthLayout';
-import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
 
 const RegisterScreen = ({ onSwitchToLogin }) => {
   const { register } = useAuth();
@@ -61,39 +61,18 @@ const RegisterScreen = ({ onSwitchToLogin }) => {
 
     setLoading(true);
 
-    // Simular cadastro (TEMPORÁRIO - depois vamos conectar com backend)
-    setTimeout(() => {
-      // Verificar se email já existe
-      const users = JSON.parse(localStorage.getItem('casino_users') || '[]');
-      
-      if (users.find(u => u.email === formData.email)) {
-        setError('Este email já está cadastrado');
-        setLoading(false);
-        return;
-      }
+    // Registrar via API
+    const result = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    });
 
-      // Criar novo usuário
-      const newUser = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        password: formData.password, // ATENÇÃO: Em produção NUNCA salvar senha em texto puro!
-        createdAt: new Date().toISOString()
-      };
+    if (!result.success) {
+      setError(result.message);
+    }
 
-      // Salvar usuário
-      users.push(newUser);
-      localStorage.setItem('casino_users', JSON.stringify(users));
-
-      // Fazer login automático
-      register({
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email
-      });
-
-      setLoading(false);
-    }, 1000);
+    setLoading(false);
   };
 
   return (
@@ -185,14 +164,6 @@ const RegisterScreen = ({ onSwitchToLogin }) => {
               disabled={loading}
             />
           </div>
-        </div>
-
-        {/* Termos */}
-        <div className="bg-gray-800 bg-opacity-50 p-3 rounded border-l-4 border-yellow-500">
-          <p className="text-xs text-gray-300">
-            Ao se cadastrar, você concorda com os termos de uso e política de privacidade. 
-            Este é um projeto educativo da UDESC.
-          </p>
         </div>
 
         {/* Botão Cadastrar */}
