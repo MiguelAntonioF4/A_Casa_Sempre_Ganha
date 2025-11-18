@@ -73,3 +73,31 @@ input[type="range"]::-moz-range-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
+
+/* Arquivo: A_Casa_Sempre_Ganha/roletinhaRussa/src/index.css */
+
+/* ... (Estilos Tailwind e outros estilos existentes mantidos) ... */
+
+/* Estilo para a Seta Estática (Indicator) */
+.indicator.static-indicator {
+  position: absolute;
+  /* top: 0 e os transform -translate-y-1/2 no JSX devem posicioná-lo */
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent; 
+  border-right: 15px solid transparent;
+  border-bottom: 30px solid #FFD700; /* Dourado */
+  z-index: 100;
+}
+
+/* Garante que o fundo da imagem seja transparente (se a imagem suportar) */
+.wheel-image-container img {
+  background-color: transparent;
+}
+
+/* Onde a roleta vai ficar posicionada é no componente pai.
+   O fundo padrão da aplicação (App.jsx) é 'bg-gray-900'. 
+   Se o fundo da roleta for branco (como o da imagem anexa) e você quer que ele
+   desapareça no fundo cinza escuro (bg-gray-900), você **precisa** que o 
+   fundo da imagem JPEG seja transparente (o que exige edição externa, ou usar PNG/SVG).
+   O CSS acima garante que a cor do contêiner da roleta seja transparente. */
