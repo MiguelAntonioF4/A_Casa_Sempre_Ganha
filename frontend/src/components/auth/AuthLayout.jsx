@@ -27,7 +27,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-gray-500 text-xs">
-            Projeto Educativo - UDESC
+            Projeto Educativo - SENAC
           </p>
           <p className="text-red-400 text-xs mt-1">
             ⚠️ Este é um projeto educativo. Jogos de azar podem causar dependência.

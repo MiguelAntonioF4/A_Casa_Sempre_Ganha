@@ -5,7 +5,7 @@ const Footer = () => {
     <div className="bg-black bg-opacity-50 border-t-2 border-yellow-600 py-4 mt-8">
       <div className="max-w-7xl mx-auto text-center">
         <p className="text-gray-400 text-sm">
-          Made by UDESC students: <strong className="text-yellow-400">Carlos Ritzmann, Kauan Werlich and Paulo Gonçalves</strong>
+          Foi por alunos do SENAC Joinville: <strong className="text-yellow-400">Luiz Cordeiro, Miguel Gonçalves e Natanael Barros</strong>
         </p>
         <p className="text-gray-500 text-xs mt-2">
           Projeto Educativo - Disciplina de Otimização e Inferência Estatística

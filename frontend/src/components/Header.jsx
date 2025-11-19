@@ -6,7 +6,7 @@ const Header = ({ playerBalance }) => {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-yellow-400">🎰 A Casa Sempre Ganha</h1>
-          <p className="text-gray-400 text-sm">Teoria da Ruína do Jogador - Projeto Educativo UDESC</p>
+          <p className="text-gray-400 text-sm">Teoria da Ruína do Jogador - Projeto Educativo SENAC</p>
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-green-400">${playerBalance.toFixed(2)}</div>
