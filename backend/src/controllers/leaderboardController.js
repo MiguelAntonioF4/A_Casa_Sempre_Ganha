@@ -3,7 +3,7 @@ const { pool } = require('../config/database');
 // Pegar ranking global (top 10)
 exports.getLeaderboard = async (req, res) => {
   try {
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `SELECT 
          user_id,
          user_name,
@@ -17,7 +17,7 @@ exports.getLeaderboard = async (req, res) => {
 
     res.json({
       success: true,
-      leaderboard: result.rows
+      leaderboard: rows
     });
   } catch (error) {
     console.error('Erro ao buscar leaderboard:', error);
@@ -31,27 +31,27 @@ exports.getLeaderboard = async (req, res) => {
 // Pegar posição do usuário no ranking
 exports.getUserRank = async (req, res) => {
   try {
-    const result = await pool.query(
+    const [result] = await pool.query(
       `SELECT 
-         COUNT(*) + 1 as rank
+         COUNT(*) + 1 as \`rank\`
        FROM leaderboard
        WHERE max_balance > (
          SELECT max_balance 
          FROM leaderboard 
-         WHERE user_id = $1
+         WHERE user_id = ?
        )`,
       [req.user.id]
     );
 
-    const userData = await pool.query(
-      'SELECT * FROM leaderboard WHERE user_id = $1',
+    const [userData] = await pool.query(
+      'SELECT * FROM leaderboard WHERE user_id = ?',
       [req.user.id]
     );
 
     res.json({
       success: true,
-      rank: result.rows[0].rank,
-      userData: userData.rows[0] || null
+      rank: result[0].rank,
+      userData: userData[0] || null
     });
   } catch (error) {
     console.error('Erro ao buscar rank:', error);

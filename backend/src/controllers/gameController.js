@@ -3,26 +3,32 @@ const { pool } = require('../config/database');
 // Pegar sessão de jogo atual
 exports.getGameSession = async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM game_sessions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+    const [sessions] = await pool.query(
+      'SELECT * FROM game_sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
       [req.user.id]
     );
 
-    if (result.rows.length === 0) {
+    if (sessions.length === 0) {
       // Criar nova sessão se não existir
-      const newSession = await pool.query(
-        'INSERT INTO game_sessions (user_id, current_balance) VALUES ($1, $2) RETURNING *',
+      const [result] = await pool.query(
+        'INSERT INTO game_sessions (user_id, current_balance) VALUES (?, ?)',
         [req.user.id, 1000.00]
       );
+      
+      const [newSession] = await pool.query(
+        'SELECT * FROM game_sessions WHERE id = ?',
+        [result.insertId]
+      );
+      
       return res.json({
         success: true,
-        session: newSession.rows[0]
+        session: newSession[0]
       });
     }
 
     res.json({
       success: true,
-      session: result.rows[0]
+      session: sessions[0]
     });
   } catch (error) {
     console.error('Erro ao buscar sessão:', error);
@@ -44,42 +50,41 @@ exports.updateGameSession = async (req, res) => {
       max_balance 
     } = req.body;
 
-    const result = await pool.query(
+    await pool.query(
       `UPDATE game_sessions 
-       SET current_balance = $1, 
-           total_rounds = $2, 
-           wins = $3, 
-           losses = $4, 
-           max_balance = GREATEST(max_balance, $5),
-           updated_at = CURRENT_TIMESTAMP
-       WHERE user_id = $6
-       RETURNING *`,
+       SET current_balance = ?, 
+           total_rounds = ?, 
+           wins = ?, 
+           losses = ?, 
+           max_balance = GREATEST(max_balance, ?)
+       WHERE user_id = ?`,
       [current_balance, total_rounds, wins, losses, max_balance, req.user.id]
     );
 
     // Atualizar leaderboard se atingiu novo máximo
-    if (max_balance >= result.rows[0].max_balance) {
-      const userName = await pool.query(
-        'SELECT name FROM users WHERE id = $1',
-        [req.user.id]
-      );
+    const [userName] = await pool.query(
+      'SELECT name FROM users WHERE id = ?',
+      [req.user.id]
+    );
 
-      await pool.query(
-        `INSERT INTO leaderboard (user_id, user_name, max_balance, total_rounds)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (user_id) 
-         DO UPDATE SET 
-           max_balance = GREATEST(leaderboard.max_balance, $3),
-           total_rounds = $4,
-           updated_at = CURRENT_TIMESTAMP`,
-        [req.user.id, userName.rows[0].name, max_balance, total_rounds]
-      );
-    }
+    await pool.query(
+      `INSERT INTO leaderboard (user_id, user_name, max_balance, total_rounds)
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+         max_balance = GREATEST(leaderboard.max_balance, ?),
+         total_rounds = ?`,
+      [req.user.id, userName[0].name, max_balance, total_rounds, max_balance, total_rounds]
+    );
+
+    const [updatedSession] = await pool.query(
+      'SELECT * FROM game_sessions WHERE user_id = ?',
+      [req.user.id]
+    );
 
     res.json({
       success: true,
       message: 'Sessão atualizada com sucesso',
-      session: result.rows[0]
+      session: updatedSession[0]
     });
   } catch (error) {
     console.error('Erro ao atualizar sessão:', error);
@@ -98,9 +103,8 @@ exports.resetGame = async (req, res) => {
        SET current_balance = 1000.00, 
            total_rounds = 0, 
            wins = 0, 
-           losses = 0,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE user_id = $1`,
+           losses = 0
+       WHERE user_id = ?`,
       [req.user.id]
     );
 

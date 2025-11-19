@@ -18,12 +18,12 @@ exports.register = async (req, res) => {
     const { name, email, password } = req.body;
 
     // Verificar se email já existe
-    const userExists = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
+    const [userExists] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
       [email]
     );
 
-    if (userExists.rows.length > 0) {
+    if (userExists.length > 0) {
       return res.status(400).json({ 
         success: false, 
         message: 'Este email já está cadastrado' 
@@ -35,22 +35,22 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Criar usuário
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
       [name, email, hashedPassword]
     );
 
-    const user = result.rows[0];
+    const userId = result.insertId;
 
     // Criar sessão de jogo inicial
     await pool.query(
-      'INSERT INTO game_sessions (user_id, current_balance) VALUES ($1, $2)',
-      [user.id, 1000.00]
+      'INSERT INTO game_sessions (user_id, current_balance) VALUES (?, ?)',
+      [userId, 1000.00]
     );
 
     // Gerar token JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: userId, email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -60,9 +60,9 @@ exports.register = async (req, res) => {
       message: 'Usuário criado com sucesso',
       token,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
+        id: userId,
+        name,
+        email
       }
     });
   } catch (error) {
@@ -80,19 +80,19 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     // Verificar se usuário existe
-    const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
+    const [users] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
       [email]
     );
 
-    if (result.rows.length === 0) {
+    if (users.length === 0) {
       return res.status(401).json({ 
         success: false, 
         message: 'Email ou senha incorretos' 
       });
     }
 
-    const user = result.rows[0];
+    const user = users[0];
 
     // Verificar senha
     const isMatch = await bcrypt.compare(password, user.password);
@@ -132,12 +132,12 @@ exports.login = async (req, res) => {
 // Pegar dados do usuário logado
 exports.getMe = async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+    const [users] = await pool.query(
+      'SELECT id, name, email, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
-    if (result.rows.length === 0) {
+    if (users.length === 0) {
       return res.status(404).json({ 
         success: false, 
         message: 'Usuário não encontrado' 
@@ -146,7 +146,7 @@ exports.getMe = async (req, res) => {
 
     res.json({
       success: true,
-      user: result.rows[0]
+      user: users[0]
     });
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
