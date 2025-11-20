@@ -28,8 +28,10 @@ const RegisterScreen = ({ onSwitchToLogin }) => {
       return false;
     }
 
-    if (formData.name.length < 3) {
-      setError('Nome deve ter no mínimo 3 caracteres');
+    // Validar nome completo (mínimo 2 palavras)
+    const nameParts = formData.name.trim().split(' ').filter(part => part.length > 0);
+    if (nameParts.length < 2) {
+      setError('Por favor, informe nome e sobrenome completos');
       return false;
     }
 
@@ -106,6 +108,7 @@ const RegisterScreen = ({ onSwitchToLogin }) => {
               disabled={loading}
             />
           </div>
+          <p className="text-xs text-gray-400 mt-1">⚠️ Informe nome e sobrenome</p>
         </div>
 
         {/* Email */}

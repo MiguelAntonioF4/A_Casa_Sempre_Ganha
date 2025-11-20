@@ -3,6 +3,17 @@ const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const { validationResult } = require('express-validator');
 
+// Função auxiliar para formatar nome (Primeiro + Último)
+const formatLeaderboardName = (fullName) => {
+  const nameParts = fullName.trim().split(' ').filter(part => part.length > 0);
+  if (nameParts.length === 1) {
+    return nameParts[0]; // Só um nome
+  }
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+  return `${firstName} ${lastName}`;
+};
+
 // Registrar novo usuário
 exports.register = async (req, res) => {
   try {
@@ -16,6 +27,15 @@ exports.register = async (req, res) => {
     }
 
     const { name, email, password } = req.body;
+
+    // Validar nome completo (mínimo 2 palavras)
+    const nameParts = name.trim().split(' ').filter(part => part.length > 0);
+    if (nameParts.length < 2) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Por favor, informe nome e sobrenome completos' 
+      });
+    }
 
     // Verificar se email já existe
     const [userExists] = await pool.query(
@@ -44,8 +64,15 @@ exports.register = async (req, res) => {
 
     // Criar sessão de jogo inicial
     await pool.query(
-      'INSERT INTO game_sessions (user_id, current_balance) VALUES (?, ?)',
-      [userId, 1000.00]
+      'INSERT INTO game_sessions (user_id, current_balance, max_balance) VALUES (?, ?, ?)',
+      [userId, 1000.00, 1000.00]
+    );
+
+    // Criar registro no leaderboard automaticamente
+    const leaderboardName = formatLeaderboardName(name);
+    await pool.query(
+      'INSERT INTO leaderboard (user_id, user_name, max_balance, total_rounds) VALUES (?, ?, ?, ?)',
+      [userId, leaderboardName, 1000.00, 0]
     );
 
     // Gerar token JWT
