@@ -11,7 +11,6 @@ import { useGameState } from './hooks/useGameState';
 import { useAutoMode } from './hooks/useAutoMode';
 
 import Tutorial from './components/Tutorial';
-import Header from './components/Header';
 import NavigationTabs from './components/NavigationTabs';
 import GameTab from './components/GameTab';
 import StatsTab from './components/StatsTab';
@@ -88,7 +87,7 @@ function GameContent() {
   // UI States
   const [activeTab, setActiveTab] = useState('game');
   const [showTutorial, setShowTutorial] = useState(true);
-  const [playerName, setPlayerName] = useState(user?.name || '');
+  const [maxBalance, setMaxBalance] = useState(INITIAL_BALANCE); // ← NOVO: Score máximo
 
   // Carregar dados salvos ao iniciar
   useEffect(() => {
@@ -96,6 +95,7 @@ function GameContent() {
       const data = await loadGameData();
       if (data) {
         setPlayerBalance(data.balance || INITIAL_BALANCE);
+        setMaxBalance(data.maxBalance || INITIAL_BALANCE); // ← CARREGAR SCORE!
         setBalanceHistory(data.history || [{ round: 0, balance: INITIAL_BALANCE }]);
         setGameHistory(data.gameHistory || []);
         setTotalRounds(data.totalRounds || 0);
@@ -152,6 +152,13 @@ function GameContent() {
     const newRound = totalRounds + 1;
     setPlayerBalance(newBalance);
     setTotalRounds(newRound);
+    
+    // ← ATUALIZAR SCORE SE BATEU RECORDE!
+    if (newBalance > maxBalance) {
+      setMaxBalance(newBalance);
+      setMessage(prev => prev + ' 🎉 NOVO RECORDE!');
+    }
+    
     setBalanceHistory([...balanceHistory, { round: newRound, balance: newBalance }]);
     setGameHistory([{
       round: newRound,
@@ -165,9 +172,6 @@ function GameContent() {
 
     if (newBalance === 0) {
       setMessage('💸 RUÍNA! Você perdeu tudo. A casa sempre ganha!');
-      if (playerName) {
-        updateLeaderboard(playerName, newBalance, newRound);
-      }
     }
   };
 
@@ -180,18 +184,18 @@ function GameContent() {
     }
   };
 
-  // Reset completo do jogo
-  const handleReset = () => {
-    if (window.confirm('Deseja resetar o jogo? Todo o progresso será perdido.')) {
+  // Reset completo do jogo (mantém score!)
+  const handleReset = async () => {
+    if (window.confirm('Deseja resetar o jogo? Seu score máximo será mantido.')) {
       resetGameState();
-      deleteGameData();
+      await deleteGameData();
+      
+      // Recarregar maxBalance do servidor (não reseta!)
+      const data = await loadGameData();
+      if (data) {
+        setMaxBalance(data.maxBalance);
+      }
     }
-  };
-
-  // Handler para atualizar leaderboard
-  const handleUpdateLeaderboard = (name, balance, rounds) => {
-    updateLeaderboard(name, balance, rounds);
-    setMessage('✅ Nome registrado no ranking!');
   };
 
   // Calcular win rate
@@ -204,7 +208,7 @@ function GameContent() {
         setShowTutorial={setShowTutorial} 
       />
 
-      {/* Header com botão de logout */}
+      {/* Header com botão de logout e SCORE */}
       <div className="bg-black bg-opacity-50 border-b-4 border-yellow-500 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
@@ -213,10 +217,21 @@ function GameContent() {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <div className="text-sm text-gray-400">Jogador: <span className="text-yellow-400 font-semibold">{user.name}</span></div>
+              <div className="text-sm text-gray-400">
+                Jogador: <span className="text-yellow-400 font-semibold">{user.name}</span>
+              </div>
+              
+              {/* SALDO ATUAL */}
               <div className="text-3xl font-bold text-green-400">${playerBalance.toFixed(2)}</div>
-              <div className="text-xs text-gray-400">Capital do Jogador</div>
-              <div className="text-xs text-yellow-300 mt-1">Casa: ∞ (Ilimitado)</div>
+              <div className="text-xs text-gray-400">Saldo Atual</div>
+              
+              {/* SCORE MÁXIMO */}
+              <div className="text-xl font-bold text-yellow-400 mt-2">
+                🏆 ${maxBalance.toFixed(2)}
+              </div>
+              <div className="text-xs text-yellow-300">Seu Score Máximo</div>
+              
+              <div className="text-xs text-gray-500 mt-2">Casa: ∞ (Ilimitado)</div>
             </div>
             <button
               onClick={logout}
@@ -296,11 +311,6 @@ function GameContent() {
         {activeTab === 'leaderboard' && (
           <LeaderboardTab
             leaderboard={leaderboard}
-            playerName={playerName}
-            setPlayerName={setPlayerName}
-            onUpdateLeaderboard={handleUpdateLeaderboard}
-            playerBalance={playerBalance}
-            totalRounds={totalRounds}
           />
         )}
       </div>
